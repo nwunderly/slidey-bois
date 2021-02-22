@@ -1,4 +1,4 @@
-package misc
+package game
 
 import (
 	"fmt"
@@ -27,25 +27,25 @@ func EmptyBoard(size int) [][]string {
 	return board
 }
 
-type Game struct {
-	Board [][]string
+type Board struct {
+	Rows [][]string
 }
 
-func NewGame(size, moves int) *Game {
-	game := &Game{}
+func NewBoard(size, moves int) *Board {
+	board := &Board{}
 
-	err := game.GenerateBoard(size, moves)
+	err := board.Generate(size, moves)
 
 	for err != nil {
 		fmt.Printf("ERROR: %s\nRECALCULATING\n", err)
-		err = game.GenerateBoard(size, moves)
+		err = board.Generate(size, moves)
 	}
-	return game
+	return board
 }
 
-func (game *Game) Show() {
+func (board *Board) Show() {
 	fmt.Print("\n")
-	for _, row := range game.Board {
+	for _, row := range board.Rows {
 		for _, col := range row {
 			fmt.Print(" " + col)
 		}
@@ -53,20 +53,20 @@ func (game *Game) Show() {
 	}
 }
 
-func (game *Game) FillEdges() {
-	size := len(game.Board)
+func (board *Board) FillEdges() {
+	size := len(board.Rows)
 
 	for i := 0; i < size; i++ {
 		for j := 0; j < size; j++ {
 			if i == 0 || i == size-1 || j == 0 || j == size-1 {
-				game.Board[i][j] = WALL
+				board.Rows[i][j] = WALL
 			}
 		}
 	}
 }
 
-func (game *Game) RandomEdge(s string) (int, int) {
-	size := len(game.Board)
+func (board *Board) RandomEdge(s string) (int, int) {
+	size := len(board.Rows)
 	var row, col int
 
 	row = rand.Intn(size)
@@ -76,27 +76,27 @@ func (game *Game) RandomEdge(s string) (int, int) {
 		col = rand.Intn(2) * (size - 1)
 	}
 
-	game.Board[row][col] = s
+	board.Rows[row][col] = s
 	return row, col
 }
 
-func (game *Game) ReplaceFillerSpaces() {
-	size := len(game.Board)
+func (board *Board) ReplaceFillerSpaces() {
+	size := len(board.Rows)
 
 	for i := 0; i < size; i++ {
 		for j := 0; j < size; j++ {
-			if game.Board[i][j] == FILLER {
-				game.Board[i][j] = EMPTY
+			if board.Rows[i][j] == FILLER {
+				board.Rows[i][j] = EMPTY
 			}
 		}
 	}
 }
 
-func (game *Game) GenerateBoard(size, moves int) error {
-	game.Board = EmptyBoard(size)
-	game.FillEdges()
+func (board *Board) Generate(size int, moves int) error {
+	board.Rows = EmptyBoard(size)
+	board.FillEdges()
 
-	row, col := game.RandomEdge(PLAYER)
+	row, col := board.RandomEdge(PLAYER)
 
 	solution := make([]string, moves)
 	var move, last string
@@ -105,16 +105,16 @@ func (game *Game) GenerateBoard(size, moves int) error {
 	for i := 0; i < moves; i++ {
 		options := make([]string, 0)
 
-		if last != "DOWN" && row != 0 && game.Board[row-1][col] != WALL {
+		if last != "DOWN" && row != 0 && board.Rows[row-1][col] != WALL {
 			options = append(options, "UP")
 		}
-		if last != "UP" && row != size-1 && game.Board[row+1][col] != WALL {
+		if last != "UP" && row != size-1 && board.Rows[row+1][col] != WALL {
 			options = append(options, "DOWN")
 		}
-		if last != "RIGHT" && col != 0 && game.Board[row][col-1] != WALL {
+		if last != "RIGHT" && col != 0 && board.Rows[row][col-1] != WALL {
 			options = append(options, "LEFT")
 		}
-		if last != "LEFT" && col != size-1 && game.Board[row][col+1] != WALL {
+		if last != "LEFT" && col != size-1 && board.Rows[row][col+1] != WALL {
 			options = append(options, "RIGHT")
 		}
 
@@ -142,7 +142,7 @@ func (game *Game) GenerateBoard(size, moves int) error {
 		for {
 			r += vy
 			c += vx
-			if r <= 0 || r >= size-1 || c <= 0 || c >= size-1 || game.Board[r][c] == WALL {
+			if r <= 0 || r >= size-1 || c <= 0 || c >= size-1 || board.Rows[r][c] == WALL {
 				break
 			}
 			maxDist++
@@ -157,18 +157,18 @@ func (game *Game) GenerateBoard(size, moves int) error {
 		r = row + vy*(dist+1)
 		c = col + vx*(dist+1)
 
-		if s := game.Board[r][c]; s == FILLER {
+		if s := board.Rows[r][c]; s == FILLER {
 			return fmt.Errorf("error moving in space (%d, %d): filled with [%s]", r, c, s)
 		}
 
 		if i != moves-1 {
-			game.Board[r][c] = WALL
+			board.Rows[r][c] = WALL
 		} else {
-			game.Board[r][c] = GOAL
+			board.Rows[r][c] = GOAL
 		}
 
 		for j := 1; j <= dist; j++ {
-			game.Board[row+(j*vy)][col+(j*vx)] = FILLER
+			board.Rows[row+(j*vy)][col+(j*vx)] = FILLER
 		}
 
 		row += vy * (dist)
@@ -179,8 +179,8 @@ func (game *Game) GenerateBoard(size, moves int) error {
 		last = move
 	}
 
-	game.Show()
-	game.ReplaceFillerSpaces()
+	board.Show()
+	board.ReplaceFillerSpaces()
 
 	return nil
 }
