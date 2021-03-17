@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/split-cube-studios/ardent"
 	"github.com/split-cube-studios/ardent/engine"
+	"log"
 )
 
 const (
@@ -18,11 +19,13 @@ type SlideyBois struct {
 	Game engine.Game
 	Renderer engine.Renderer
 
-	Player Player
+	Player *Tile
 	Board *Board
 }
 
 func New() *SlideyBois {
+	log.Println("Initializing")
+
 	g := &SlideyBois{}
 	game := ardent.NewGame(
 		"SlideyBois",
@@ -30,29 +33,27 @@ func New() *SlideyBois {
 		engine.FlagResizable,
 		g.Tick, g.Layout,
 	)
+
 	g.Setup(game)
 
 	return g
 }
 
-func (g *SlideyBois) Tick() {}
+func (g *SlideyBois) Tick() {
+	//log.Println("Tick")
+}
 
 func (g *SlideyBois) Layout(w, h int) (int, int) {
 	return width, height
 }
 
 func (g *SlideyBois) Setup(game engine.Game) {
+	log.Println("Setting up")
+
 	g.Game = game
 	g.Renderer = game.NewRenderer()
-	g.Board = NewBoard(10, 10)
+	g.Game.AddRenderer(g.Renderer)
+	//level := GenerateLevel(8, 6)
+	level := DevTestLevel
+	g.Board = g.NewBoard(level)
 }
-
-// TODO: implement tiles with Board struct
-
-//func (g *SlideyBois) NewTile(size int, col color.Color, symbol string) {
-//	t := tile{
-//		0, 0,
-//		symbol,
-//		g.Game.NewImageFromImage(),
-//	}
-//}
